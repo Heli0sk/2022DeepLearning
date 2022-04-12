@@ -4,10 +4,16 @@ import torchvision.transforms as transforms
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from loadData import Mnist
-from model import LeNet5
+from LeNet5 import LeNet5
 
 
 def gen_dataset(path, clas, batchsize):
+    '''
+    :param path: 数据存放的相对路径
+    :param clas: 区分训练集和测试集
+    :param batchsize:
+    :return: dataloader
+    '''
     dataset = Mnist(
         root=path,
         train=clas,
@@ -25,6 +31,13 @@ def gen_dataset(path, clas, batchsize):
 
 
 def Train(epochs, train_loader, model, show=False):
+    '''
+    :param epochs:
+    :param train_loader:
+    :param model: 待训练模型
+    :param show:  是否对loss进行可视化
+    :return: loss
+    '''
     loss_list = []
     for epoch in range(epochs):
         running_loss = 0.0
