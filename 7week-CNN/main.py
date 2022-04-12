@@ -3,89 +3,93 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from data import Mnist
+from loadData import Mnist
 from model import LeNet5
 
-# 生成训练集
-train_set = Mnist(
-    root='dataset',
-    train=True,
-    transform=transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.1037,), (0.3081,))
-    ])
-)
-train_loader = DataLoader(
-    dataset=train_set,
-    batch_size=32,
-    shuffle=True
-)
 
-# 实例化一个网络
-net = LeNet5()
+def gen_dataset(path, clas, batchsize):
+    dataset = Mnist(
+        root=path,
+        train=clas,
+        transform=transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1037,), (0.3081,))
+        ])
+    )
+    data_loader = DataLoader(
+        dataset=dataset,
+        batch_size=batchsize,
+        shuffle=True
+    )
+    return data_loader
 
-# 定义损失函数和优化器
-loss_function = torch.nn.CrossEntropyLoss()
-optimizer = optim.SGD(
-    net.parameters(),
-    lr=0.001,
-    momentum=0.9
-)
 
-# 3 训练模型
-loss_list = []
-for epoch in range(10):
-    running_loss = 0.0
-    for batch_idx, data in enumerate(train_loader, start=0):
+def Train(epochs, train_loader, model, show=False):
+    loss_list = []
+    for epoch in range(epochs):
+        running_loss = 0.0
+        for batch_idx, data in enumerate(train_loader, start=0):
+            images, labels = data  # 读取一个batch的数据
+            optimizer.zero_grad()  # 梯度清零，初始化
+            outputs = model(images)  # 前向传播
+            loss = loss_function(outputs, labels)  # 计算误差
+            loss.backward()  # 反向传播
+            optimizer.step()  # 权重更新
+            running_loss += loss.item()  # 误差累计
+            # 每300个batch 打印一次损失值
+            if batch_idx % 300 == 299:
+                print('epoch:{} batch_idx:{} loss:{}'
+                      .format(epoch + 1, batch_idx + 1, running_loss / 300))
+                loss_list.append(running_loss / 300)
+                running_loss = 0.0  # 误差清零
+    print('Finished Training.')
 
-        images, labels = data  # 读取一个batch的数据
-        optimizer.zero_grad()  # 梯度清零，初始化
-        outputs = net(images)  # 前向传播
-        loss = loss_function(outputs, labels)  # 计算误差
-        loss.backward()  # 反向传播
-        optimizer.step()  # 权重更新
-        running_loss += loss.item()  # 误差累计
+    # 打印损失值变化曲线
+    if show:
+        plt.plot(loss_list)
+        plt.title('traning loss')
+        plt.xlabel('epochs')
+        plt.ylabel('loss')
+        plt.show()
+    return loss_list
 
-        # 每300个batch 打印一次损失值
-        if batch_idx % 300 == 299:
-            print('epoch:{} batch_idx:{} loss:{}'
-                  .format(epoch + 1, batch_idx + 1, running_loss / 300))
-            loss_list.append(running_loss / 300)
-            running_loss = 0.0  # 误差清零
 
-print('Finished Training.')
+def Evaluate(test_loader, model):
+    correct = 0  # 预测正确数
+    total = 0  # 总图片数
+    for data in test_loader:
+        images, labels = data
+        outputs = model(images)
+        _, predict = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predict == labels).sum()
+    acc = 100 * correct // total
 
-# 打印损失值变化曲线
-plt.plot(loss_list)
-plt.title('traning loss')
-plt.xlabel('epochs')
-plt.ylabel('loss')
-plt.show()
+    return acc
 
-# 测试
-test_set = Mnist(
-    root='dataset',
-    train=False,
-    transform=transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.1037,), (0.3081,))
-    ])
-)
-test_loader = DataLoader(
-    dataset=test_set,
-    batch_size=32,
-    shuffle=True
-)
 
-correct = 0  # 预测正确数
-total = 0  # 总图片数
+if __name__ == '__main__':
+    data_path = 'dataset'
+    batch_size = 32
+    epochs = 10
 
-for data in test_loader:
-    images, labels = data
-    outputs = net(images)
-    _, predict = torch.max(outputs.data, 1)
-    total += labels.size(0)
-    correct += (predict == labels).sum()
+    # 生成训练集
+    train_loader = gen_dataset(data_path, True, batch_size)
+    # 实例化一个网络
+    LeNet5 = LeNet5()
+    # 定义损失函数和优化器
+    loss_function = torch.nn.CrossEntropyLoss()
+    optimizer = optim.SGD(
+        LeNet5.parameters(),
+        lr=0.001,
+        momentum=0.9
+    )
+    # 训练模型
+    trainLoss = Train(epochs, train_loader, LeNet5, True)
 
-print('测试集准确率 {}%'.format(100 * correct // total))
+    # 测试
+    test_loader = gen_dataset(data_path, False, batch_size)
+    acc = Evaluate(test_loader, LeNet5)
+    print('测试集准确率 {}%'.format(acc))
+
 
