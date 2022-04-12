@@ -85,6 +85,7 @@ if __name__ == '__main__':
     data_path = 'dataset'
     batch_size = 32
     epochs = 10
+    learning_rate = 0.001
 
     # 生成训练集
     train_loader = gen_dataset(data_path, True, batch_size)
@@ -94,7 +95,7 @@ if __name__ == '__main__':
     loss_function = torch.nn.CrossEntropyLoss()
     optimizer = optim.SGD(
         LeNet5.parameters(),
-        lr=0.001,
+        lr=learning_rate,
         momentum=0.9
     )
     # 训练模型
