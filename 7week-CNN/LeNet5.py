@@ -25,7 +25,7 @@ class LeNet5(nn.Module):
     def forward(self, x):
         # [28,28,1]--->[24,24,6]--->[12,12,6]
         x = self.pool1(F.relu(self.conv1(x)))
-        # [12,12,6]--->[8,8,,16]--->[4,4,16]
+        # [12,12,6]--->[8,8,16]--->[4,4,16]
         x = self.pool2(F.relu(self.conv2(x)))
         # [n,4,4,16]--->[n,4*4*16]
         x = x.view(-1, 16 * 4 * 4)

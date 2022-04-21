@@ -8,12 +8,12 @@ from LeNet5 import LeNet5
 
 
 def gen_dataset(path, clas, batchsize):
-    '''
+    """
     :param path: 数据存放的相对路径
     :param clas: 区分训练集和测试集
     :param batchsize:
     :return: dataloader
-    '''
+    """
     dataset = Mnist(
         root=path,
         train=clas,
@@ -31,13 +31,13 @@ def gen_dataset(path, clas, batchsize):
 
 
 def Train(epochs, train_loader, model, show=False):
-    '''
+    """
     :param epochs:
     :param train_loader:
     :param model: 待训练模型
     :param show:  是否对loss进行可视化
     :return: loss
-    '''
+    """
     loss_list = []
     for epoch in range(epochs):
         running_loss = 0.0
@@ -87,8 +87,9 @@ if __name__ == '__main__':
     epochs = 10
     learning_rate = 0.001
 
-    # 生成训练集
+    # 生成训练集和测试集
     train_loader = gen_dataset(data_path, True, batch_size)
+    test_loader = gen_dataset(data_path, False, batch_size)
     # 实例化一个网络
     LeNet5 = LeNet5()
     # 定义损失函数和优化器
@@ -102,7 +103,6 @@ if __name__ == '__main__':
     trainLoss = Train(epochs, train_loader, LeNet5, True)
 
     # 测试
-    test_loader = gen_dataset(data_path, False, batch_size)
     acc = Evaluate(test_loader, LeNet5)
     print('测试集准确率 {}%'.format(acc))
 
